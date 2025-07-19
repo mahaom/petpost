@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Pet</title>
+</head>
+<body>
+  <h1>Edit Pet</h1>
+  <form method="POST">
+    Name: <input type="text" name="name" value="{{ pet.name }}"><br>
+    Age: <input type="text" name="age" value="{{ pet.age }}"><br>
+    Breed: <input type="text" name="breed" value="{{ pet.breed }}"><br>
+    <input type="submit" value="Save Changes">
+  </form>
+  <br>
+  <a href="/">Back to List</a>
+</body>
+</html>

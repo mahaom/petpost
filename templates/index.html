@@ -1,24 +1,123 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <title>PetPost</title>
+  <title>PetPost - Adopt a Pet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    .container {
+      width: 80%;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    form input[type="text"],
+    form input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    form input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    form input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+
+    .pet-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      background-color: #fafafa;
+    }
+
+    .pet-card img {
+      width: 150px;
+      height: auto;
+      border-radius: 8px;
+      margin-right: 20px;
+    }
+
+    .pet-details {
+      flex-grow: 1;
+    }
+
+    .section-title {
+      margin-top: 40px;
+      font-size: 1.5em;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-  <h1>Add Adoptable Pet</h1>
+
+<header>
+  <h1>🐾 PetPost - Adopt a Pet</h1>
+</header>
+
+<div class="container">
+  <h2>Add a New Pet</h2>
   <form action="/upload" method="POST" enctype="multipart/form-data">
-    Name: <input type="text" name="name"><br>
-    Age: <input type="text" name="age"><br>
-    Breed: <input type="text" name="breed"><br>
-    Photo: <input type="file" name="photo"><br>
-    <input type="submit" value="Upload">
+    Name: <input type="text" name="name" required>
+    Age: <input type="text" name="age" required>
+    Breed: <input type="text" name="breed" required>
+    Photo: <input type="file" name="photo" required>
+    <input type="submit" value="Add Pet">
+  </form>
+  <h2>Filter Pets</h2>
+  <form method="GET" action="/">
+	Filter by Breed: <input type="text" name="breed">
+	Filter by Age: <input type="text" name="age">
+	<input type="submit" value="Filter">
   </form>
 
-  <h2>Available Pets</h2>
+  <h2 class="section-title">Available Pets for Adoption</h2>
   {% for pet in pets %}
-    <div>
-      <p><strong>{{ pet.name }}</strong> ({{ pet.age }} years old) - {{ pet.breed }}</p>
-      <img src="{{ pet.image }}" width="200"><br><br>
+    <div class="pet-card">
+      <img src="{{ pet.image }}" alt="{{ pet.name }}">
+      <div class="pet-details">
+        <p><strong>Name:</strong> {{ pet.name }}</p>
+        <p><strong>Age:</strong> {{ pet.age }} years old</p>
+        <p><strong>Breed:</strong> {{ pet.breed }}</p>
+		<form action="/delete/{{ pet.id }}" method="POST" style="display:inline;">
+			<input type="submit" value="Delete" onclick="return confirm('Delete this pet?')">
+		</form>
+		<a href="/edit/{{ pet.id }}">Edit</a>
+      </div>
     </div>
   {% endfor %}
+</div>
+
 </body>
 </html>
