@@ -40,5 +40,8 @@ def upload():
     pets = load_pets()
     pets.append(pet)
     save_pets(pets)
-
+    
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    
     return redirect('/')
