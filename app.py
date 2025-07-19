@@ -27,19 +27,35 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    name = request.form['name']
-    age = request.form['age']
-    breed = request.form['breed']
-    photo = request.files['photo']
+    try:
+        name = request.form['name']
+        age = request.form['age']
+        breed = request.form['breed']
+        photo = request.files['photo']
 
-    filename = secure_filename(photo.filename)
-    s3.upload_fileobj(photo, S3_BUCKET, filename)
-    image_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
+        if photo.filename == '':
+            return 'No file selected'
 
-    pet = {'name': name, 'age': age, 'breed': breed, 'image': image_url}
-    pets = load_pets()
-    pets.append(pet)
-    save_pets(pets)
+        filename = secure_filename(photo.filename)
+        s3.upload_fileobj(photo, S3_BUCKET, filename)
+        image_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
+
+        pet = {'name': name, 'age': age, 'breed': breed, 'image': image_url}
+        
+        # Create pets.json if not exists
+        if not os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'w') as f:
+                json.dump([], f)
+
+        pets = load_pets()
+        pets.append(pet)
+        save_pets(pets)
+
+        return redirect('/')
+    
+    except Exception as e:
+        return f"An error occurred: {e}"
+
     
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
