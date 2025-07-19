@@ -1,74 +1,44 @@
-# app.py
-import os
-import json
-import boto3
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
+import boto3, os, json
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+S3_BUCKET = 'your-s3-bucket-name'  # Replace this
+DATA_FILE = 'pets.json'
 
-# --- AWS S3 Configuration ---
-# !!! IMPORTANT: REPLACE 'YOUR_BUCKET_NAME' WITH YOUR ACTUAL S3 BUCKET NAME !!!
-S3_BUCKET = 'YOUR_BUCKET_NAME'
-S3_REGION = 'us-east-1' # Change if your bucket is in a different region
-s3 = boto3.client('s3', region_name=S3_REGION)
-PETS_DATA_FILE = 'pets.json'
+s3 = boto3.client('s3')
 
-def get_pet_data():
-    """Reads pet data from the JSON file."""
-    if not os.path.exists(PETS_DATA_FILE):
+# Load pets from JSON file
+def load_pets():
+    if not os.path.exists(DATA_FILE):
         return []
-    with open(PETS_DATA_FILE, 'r') as f:
+    with open(DATA_FILE, 'r') as f:
         return json.load(f)
 
-def save_pet_data(data):
-    """Saves pet data to the JSON file."""
-    with open(PETS_DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=4)
+# Save pets to JSON file
+def save_pets(pets):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(pets, f)
 
 @app.route('/')
 def index():
-    """Displays the list of adoptable pets."""
-    pets = get_pet_data()
+    pets = load_pets()
     return render_template('index.html', pets=pets)
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/upload', methods=['POST'])
 def upload():
-    """Handles the pet upload form."""
-    if request.method == 'POST':
-        # 1. Get form data
-        name = request.form['name']
-        age = request.form['age']
-        breed = request.form['breed']
-        image = request.files['image']
+    name = request.form['name']
+    age = request.form['age']
+    breed = request.form['breed']
+    photo = request.files['photo']
 
-        if image:
-            # 2. Upload image to S3
-            filename = image.filename
-            s3.upload_fileobj(
-                image,
-                S3_BUCKET,
-                filename,
-                ExtraArgs={'ACL': 'public-read', 'ContentType': image.content_type}
-            )
-            # 3. Construct the public image URL
-            image_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
+    filename = secure_filename(photo.filename)
+    s3.upload_fileobj(photo, S3_BUCKET, filename)
+    image_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
 
-            # 4. Save new pet data
-            pets = get_pet_data()
-            pets.append({
-                'name': name,
-                'age': age,
-                'breed': breed,
-                'image_url': image_url
-            })
-            save_pet_data(pets)
+    pet = {'name': name, 'age': age, 'breed': breed, 'image': image_url}
+    pets = load_pets()
+    pets.append(pet)
+    save_pets(pets)
 
-        # 5. Redirect to the homepage
-        return redirect(url_for('index'))
-
-    # If GET request, just show the form
-    return render_template('upload.html')
-
-if __name__ == '__main__':
-    # Running on 0.0.0.0 makes it accessible from the public IP
-    app.run(host='0.0.0.0', port=80, debug=True)
+    return redirect('/')
