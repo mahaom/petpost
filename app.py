@@ -3,7 +3,7 @@ import boto3, os, json
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-S3_BUCKET = 'your-s3-bucket-name'  # Replace this
+S3_BUCKET = 'petpost-images-bucket'  # Replace this
 DATA_FILE = 'pets.json'
 
 s3 = boto3.client('s3')
